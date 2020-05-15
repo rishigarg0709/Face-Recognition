@@ -38,9 +38,6 @@ def enter():
 
 mydict = {}
 
-@app.route('/file/<filename>')
-def file(filename):
-    return mongo.send_file(filename)
 
 @app.route('/childInfo' , methods = ['POST'])
 def submit_pic():
@@ -87,6 +84,8 @@ def submit_pic():
                 if cosine(score, scoreArr) <= 0.4:
                     ismatched = True
                     foundChildData = data
+                    del foundChildData['_id']
+                    del foundChildData['score']
                     break
 
         if(ismatched):
@@ -97,23 +96,26 @@ def submit_pic():
         elif curid !=1 and ismatched == False:
             colUser.insert_one(curChildData)
 
-        del foundChildData['_id']
-        del foundChildData['score']
+
         del curChildData['_id']
         del curChildData['score']
 
         K.clear_session()
         return jsonify({"curChild":curChildData, "foundChild": foundChildData})
 
+@app.route('/findAll', methods = ['GET'])
+def findAll():
+    allChildrenData = colUser.find({})
+    dataList = []
+    for data in allChildrenData:
+        del data['_id']
+        del data['score']
+        dataList.append(data)
+        
+    return jsonify(dataList)
 
-@app.route('/lost', methods = ['GET'])
-def lost():
-    return render_template('lost.html')
 
 
-@app.route('/found', methods = ['GET'])
-def found():
-    return render_template('found.html')
 
 
 # if __name__ == "__main__":
